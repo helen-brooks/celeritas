@@ -34,6 +34,7 @@ class CaloTestBase : virtual public StepCollectorTestBase
     struct RunResult
     {
         std::vector<double> edep;
+        std::vector<double> edep_err;
 
         void print_expected() const;
     };
@@ -46,11 +47,14 @@ class CaloTestBase : virtual public StepCollectorTestBase
 
     virtual VecString get_detector_names() const = 0;
 
-    RunResult run(size_type num_tracks, size_type num_steps);
+    RunResult run(size_type num_tracks, size_type num_steps, size_type num_batches=1);
 
   protected:
     std::shared_ptr<ExampleCalorimeters> example_calos_;
     std::shared_ptr<StepCollector> collector_;
+
+  private:
+    size_t num_detectors_;
 };
 
 //---------------------------------------------------------------------------//

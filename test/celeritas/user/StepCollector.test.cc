@@ -113,6 +113,35 @@ class TestEm3CollectorTestBase : public TestEm3Base,
     }
 };
 
+
+class TestPhotonCollectorTestBase : public  TestEm3CollectorTestBase {
+
+  VecPrimary make_primaries(size_type count) override
+  {
+
+    // Get photo id
+    auto photon = this->particle()->find(pdg::gamma());
+    CELER_ASSERT(photon);
+
+    Primary p;
+    p.energy = MevEnergy{10.0};
+    p.position = {-22, 0, 0};
+    p.direction = {1, 0, 0};
+    p.time = 0;
+    p.particle_id=photon;
+    std::vector<Primary> result(count, p);
+
+    for (auto i : range(count))
+      {
+        result[i].event_id = EventId{0};
+        result[i].track_id = TrackId{i};
+      }
+    return result;
+  }
+
+};
+
+
 #define TestEm3MctruthTest TEST_IF_CELERITAS_GEANT(TestEm3MctruthTest)
 class TestEm3MctruthTest : public TestEm3CollectorTestBase,
                            public MctruthTestBase
@@ -121,6 +150,16 @@ class TestEm3MctruthTest : public TestEm3CollectorTestBase,
 
 #define TestEm3CaloTest TEST_IF_CELERITAS_GEANT(TestEm3CaloTest)
 class TestEm3CaloTest : public TestEm3CollectorTestBase, public CaloTestBase
+{
+    VecString get_detector_names() const final
+    {
+        return {"gap_lv_0", "gap_lv_1", "gap_lv_2"};
+    }
+};
+
+
+#define TestPhotonCaloTest TEST_IF_CELERITAS_GEANT(TestPhotonCaloTest)
+class TestPhotonCaloTest : public TestPhotonCollectorTestBase, public CaloTestBase
 {
     VecString get_detector_names() const final
     {
@@ -293,6 +332,21 @@ TEST_F(TestEm3CaloTest, thirtytwo_step)
     static double const expected_edep[]
         = {1548.8862372467, 113.80254412772, 32.259504023678};
     EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
+}
+
+
+TEST_F(TestPhotonCaloTest, sixteen_batches_short)
+{
+  auto result = this->run(256, 32, 16);
+  PRINT_EXPECTED(result.edep);
+  PRINT_EXPECTED(result.edep_err);
+}
+
+TEST_F(TestPhotonCaloTest, sixteen_batches_long)
+{
+  auto result = this->run(4096, 512, 16);
+  PRINT_EXPECTED(result.edep);
+  PRINT_EXPECTED(result.edep_err);
 }
 
 //---------------------------------------------------------------------------//

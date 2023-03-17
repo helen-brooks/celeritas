@@ -86,10 +86,16 @@ void ExampleCalorimeters::execute(StateHostRef const& data)
         // Only tally results from one event at a time
         CELER_ASSERT(event_ == data.event_id[tid]);
 
+        // The length of deposition vec is expected number of detectors
+        // Should never exceed this!
         CELER_ASSERT(det < deposition_.size());
         real_type edep
             = value_as<units::MevEnergy>(data.energy_deposition[tid]);
+
+        // Common sense, energies should be positive
         CELER_ASSERT(edep > 0);
+
+        // If we care about energy binning need to make this array bigger.
         deposition_[det.unchecked_get()] += edep;
     }
 }
